@@ -27,37 +27,56 @@ class FreepikDownloader:
         try:
             self.driver.get(FREEPIK_LOGIN)
 
+            # Switch to the iframe containing the Google login button
+            iframe = WebDriverWait(self.driver, 20).until(
+                EC.presence_of_element_located((By.XPATH, "//iframe[@title='Sign in with Google Button']"))
+            )
+            self.driver.switch_to.frame(iframe)
 
+            # Wait for the Google login button to be clickable
             google_login_button = WebDriverWait(self.driver, 20).until(
                 EC.element_to_be_clickable((By.XPATH, "//div[@role='button' and @aria-labelledby='button-label']"))
             )
             google_login_button.click()
 
+            # Switch back to the main window to handle the Google login popup
+            self.driver.switch_to.default_content()
 
+            # Wait for the Google login popup window
             WebDriverWait(self.driver, 20).until(EC.number_of_windows_to_be(2))
 
-
+            # Switch to the Google login popup window
             self.driver.switch_to.window(self.driver.window_handles[1])
 
-
+            # Find and enter email
             email_field = WebDriverWait(self.driver, 20).until(
                 EC.presence_of_element_located((By.XPATH, "//input[@type='email']"))
             )
             email_field.send_keys("kunalgj06@gmail.com")
             email_field.send_keys(Keys.ENTER)
 
-
+            # Wait for the password field to be present and interactable
             password_field = WebDriverWait(self.driver, 20).until(
                 EC.presence_of_element_located((By.XPATH, "//input[@type='password']"))
             )
+
+            # Ensure the password field is interactable
+            WebDriverWait(self.driver, 20).until(
+                EC.element_to_be_clickable((By.XPATH, "//input[@type='password']"))
+            )
+
+            # Scroll into view if necessary
+            self.driver.execute_script("arguments[0].scrollIntoView(true);", password_field)
             password_field.send_keys("kunal@tnc")
             password_field.send_keys(Keys.ENTER)
 
-
+            # Switch back to the Freepik window
             self.driver.switch_to.window(self.driver.window_handles[0])
 
         except TimeoutException as e:
             print(f"TimeoutException during login: {e}")
+        except Exception as e:
+            print(f"Exception during login: {e}")
 
     def download_logo(self):
         try:
